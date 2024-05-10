@@ -57,11 +57,12 @@ def notif_barang_purchasing(request):
             pass
         list_q_gudang.append({kode_produk: item["kuantitas"]})
     dataspk = (
-        models.DetailSPK.objects.values(("KodeArtikel__KodeArtikel"))
+        models.DetailSPK.objects.filter(NoSPK__StatusAktif = True).values(("KodeArtikel__KodeArtikel"))
         .annotate(kuantitas2=Sum("Jumlah"))
         .order_by()
     )
 
+    print("data spk filter",dataspk)
     for item in dataspk:
         art_code = item["KodeArtikel__KodeArtikel"]
         jumlah_art = item["kuantitas2"]
@@ -270,6 +271,7 @@ def barang_masuk(request):
 
             for x in sjball:
                 harga_total = x.Jumlah * x.Harga
+                x.NoSuratJalan.Tanggal = x.NoSuratJalan.Tanggal.strftime("%d-%m-%Y")
                 print(harga_total)
                 list_harga_total1.append(harga_total)
             i = 0
@@ -468,7 +470,7 @@ def create_produk(request):
         nama_produk = request.POST["nama_produk"]
         unit_produk = request.POST["unit_produk"]
         keterangan_produk = request.POST["keterangan_produk"]
-        jumlah_minimal = request.POST["jumlah_minimal"]
+        jumlah_minimal = 0
         produkobj = models.Produk.objects.filter(KodeProduk=kode_produk)
         print(produkobj)
         if len(produkobj) == 1:
@@ -479,7 +481,7 @@ def create_produk(request):
                 KodeProduk=kode_produk,
                 NamaProduk=nama_produk,
                 unit=unit_produk,
-                keterangan=keterangan_produk,
+                keteranganPurchasing=keterangan_produk,
                 TanggalPembuatan=datetime.now(),
                 Jumlahminimal=jumlah_minimal,
             )
@@ -502,7 +504,7 @@ def update_produk(request, id):
         produkobj.KodeProduk = kode_produk
         produkobj.NamaProduk = nama_produk
         produkobj.unit = unit_produk
-        produkobj.keterangan = keterangan_produk
+        produkobj.keteranganPurchasing = keterangan_produk
         produkobj.Jumlahminimal = jumlah_minimal
         produkobj.save()
         return redirect("read_produk")
@@ -522,7 +524,7 @@ def rekap_gudang(request):
             "KodeProduk",
             "KodeProduk__NamaProduk",
             "KodeProduk__unit",
-            "KodeProduk__keterangan",
+            "KodeProduk__keteranganGudang",
         )
         .annotate(kuantitas=Sum("Jumlah"))
         .order_by()
@@ -540,7 +542,7 @@ def rekap_gudang(request):
                 "KodeProduk",
                 "KodeProduk__NamaProduk",
                 "KodeProduk__unit",
-                "KodeProduk__keterangan",
+                "KodeProduk__keteranganGudang",
             )
             .annotate(kuantitas=Sum("Jumlah"))
             .order_by()
@@ -653,6 +655,8 @@ def read_po(request):
         po_obj = models.DetailSuratJalanPembelian.objects.filter(
             NoSuratJalan__PO=input_po
         )
+        for item in po_obj :
+            item.NoSuratJalan.Tanggal = item.NoSuratJalan.Tanggal.strftime("%d-%m-%Y")
         if len(po_obj) == 0:
             messages.error(request, "Data tidak ditemukan")
             return redirect("read_po")
@@ -725,8 +729,9 @@ def track_spk(request, id):
 
 # SPPB
 def view_sppb(request):
-    datasppb = models.SPPB.objects.all()
-
+    datasppb = models.DetailSPPB.objects.all().order_by('NoSPPB__Tanggal')
+    for item in datasppb :
+        item.NoSPPB.Tanggal = item.NoSPPB.Tanggal.strftime("%d-%m-%Y")
     return render(request, "Purchasing/view_sppb2.html", {"datasppb": datasppb})
 
 
@@ -1175,13 +1180,13 @@ def kebutuhan_barang(request):
         try:
             getspk = models.SPK.objects.get(NoSPK=inputno_spk)
         except ObjectDoesNotExist:
-            messages.error(request, "Nomor SPK Tidak Ditemukan")
+            messages.error(request, "Nomor SPK tidak ditemukan atau sudah tidak aktif")
             return redirect("kebutuhan_barang")
 
-        filterspk = models.DetailSPK.objects.filter(NoSPK=getspk.id)
+        filterspk = models.DetailSPK.objects.filter(NoSPK=getspk.id).filter(NoSPK__StatusAktif=True)
 
         if len(filterspk) == 0:
-            messages.error(request, "Nomor SPK Tidak Ditemukan")
+            messages.error(request, "Nomor SPK tidak ditemukan atau sudah tidak aktif")
             return redirect("kebutuhan_barang")
         else:
             dataspk = (
