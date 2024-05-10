@@ -529,6 +529,7 @@ def rekap_gudang(request):
         .annotate(kuantitas=Sum("Jumlah"))
         .order_by()
     )
+    print(datasjb)
     datenow = datetime.now()
     tahun = datenow.year
     mulai = datetime(year=tahun, month=1, day=1)
