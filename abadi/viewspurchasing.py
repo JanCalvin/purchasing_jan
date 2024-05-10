@@ -62,12 +62,12 @@ def notif_barang_purchasing(request):
         .order_by()
     )
 
-    print("data spk filter",dataspk)
+ 
     for item in dataspk:
         art_code = item["KodeArtikel__KodeArtikel"]
         jumlah_art = item["kuantitas2"]
         list_data_art.append({"Kode_Artikel": art_code, "Jumlah_Artikel": jumlah_art})
-    print(list_data_art)
+
 
     for item in list_data_art:
         kodeArt = item["Kode_Artikel"]
@@ -76,7 +76,7 @@ def notif_barang_purchasing(request):
 
         getidartikel = models.Artikel.objects.get(KodeArtikel=kodeArt)
         art_code = getidartikel.id
-        print(" Artikel kode :", art_code)
+    
 
         try:
             konversi_art = (
@@ -94,7 +94,7 @@ def notif_barang_purchasing(request):
                 .distinct()
             )
 
-            print("Ini konversi artikel", konversi_art)
+           
 
             for item2 in konversi_art:
                 kode_artikel = art_code
@@ -182,7 +182,7 @@ def notif_barang_purchasing(request):
     #         new_value = abs(value[1])
     #         rekap_pengadaan[key] = [value[0], new_value],list_q_akhir[key]['Unit_Satuan']
 
-    print("Ini rekap pengadaan :", rekap_pengadaan)
+
     # for item in dataspk :
     #     produk = item.kode_art
     #     jumlah = item.Jumlah
@@ -235,7 +235,7 @@ def verifikasi_data(request, id):
 
 
 def acc_notif_spk(request, id):
-    print(id)
+
     # accobj = models.DetailSPK.objects.get(IDDetailSPK=id)
     # if request.method == 'GET':
     #     print(accobj.NoSPK.Tanggal)
@@ -251,7 +251,7 @@ def acc_notif_spk(request, id):
     #     accobj.NoSPK.save()
     #     return redirect("notif_purchasing")
     accobj = models.SPK.objects.get(pk=id)
-    print("ini acc obj", accobj)
+    
     accobj.KeteranganACC = True
     accobj.save()
     messages.success(request, "Jangan lupa cek data SPK!")
@@ -262,7 +262,7 @@ def barang_masuk(request):
     if len(request.GET) == 0:
         list_harga_total1 = []
 
-        print(len(request.GET))
+  
         sjball = models.DetailSuratJalanPembelian.objects.all().order_by(
             "NoSuratJalan__Tanggal"
         )
