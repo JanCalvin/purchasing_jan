@@ -15,8 +15,8 @@ from django.core.exceptions import ObjectDoesNotExist
 def notif_barang_purchasing(request):
     filter_dataobj = models.DetailSuratJalanPembelian.objects.filter(
         KeteranganACC=False
-    )
-    filter_spkobj = models.SPK.objects.filter(KeteranganACC=False)
+    ).order_by("NoSuratJalan__Tanggal")
+    filter_spkobj = models.SPK.objects.filter(KeteranganACC=False).order_by('Tanggal')
     list_artikel = []
     list_q_gudang = []
     list_data_art = []
@@ -177,26 +177,60 @@ def notif_barang_purchasing(request):
                         new_value,
                         list_q_akhir[index]["Unit_Satuan"],
                     ]
-    # for key, value in pengadaan.items():
-    #     if value[1] < 0:
-    #         new_value = abs(value[1])
-    #         rekap_pengadaan[key] = [value[0], new_value],list_q_akhir[key]['Unit_Satuan']
+    
+    list_produk = []
+    jumlah_min = models.Produk.objects.values("KodeProduk","Jumlahminimal")
+    print(jumlah_min)
+    datasjb = (
+        models.DetailSuratJalanPembelian.objects.values(
+            "KodeProduk",
+            "KodeProduk__NamaProduk",
+            "KodeProduk__unit",
+            "KodeProduk__keteranganGudang",
+        )
+        .annotate(kuantitas=Sum("Jumlah"))
+        .order_by()
+    )
 
+    
+    datagudang = (
+        models.TransaksiGudang.objects.values("KodeProduk")
+        .annotate(kuantitas=Sum("jumlah"))
+        .order_by()
+    )
 
-    # for item in dataspk :
-    #     produk = item.kode_art
-    #     jumlah = item.Jumlah
-    #     print(produk )
-    #     print(jumlah)
+    # for item2 in jumlah_min :
+    #         kode = item2['KodeProduk']
+    #         print(kode)   
+    for item in datasjb:
+        kode_produk = item["KodeProduk"]
+        nama_produk = item['KodeProduk__NamaProduk']
+        satuan = item['KodeProduk__unit']
+        try:
+            corresponding_gudang_item = datagudang.get(KodeProduk=kode_produk)
+            item["kuantitas"] -= corresponding_gudang_item["kuantitas"]
+            for item2 in jumlah_min :
+                kode = item2['KodeProduk']
+                jumlah_minimal = item2['Jumlahminimal']
+                if kode == kode_produk :
+                    if item["kuantitas"] < jumlah_minimal:
+                        list_produk.append(
+                            {'Kode_Produk':kode_produk,
+                             'Nama_Produk' :nama_produk,
+                             'Satuan' : satuan,
+                             'Jumlah_minimal' : jumlah_minimal,
+                             'Jumlah_aktual' : item['kuantitas']
+                             }
+                        )
+                    else :
+                        continue
+                else :
+                    continue  
 
-    # list_data_art.append(
-    #     {
-    #         item :
-    #     }
-    # )
-    # print(list_artikel)
-    # print(dataspk)
-    # print(list_q_gudang)
+        except models.TransaksiGudang.DoesNotExist:
+            pass
+
+    print("Ini list produk: ", list_produk)
     return render(
         request,
         "Purchasing/notif_purchasing.html",
@@ -204,6 +238,7 @@ def notif_barang_purchasing(request):
             "filterobj": filter_dataobj,
             "filter_spkobj": filter_spkobj,
             "rekap_pengadaan": rekap_pengadaan,
+            "listproduk" : list_produk
         },
     )
 
@@ -231,6 +266,16 @@ def verifikasi_data(request, id):
         verifobj.save()
         verifobj.NoSuratJalan.save()
         harga_total = verifobj.Jumlah * verifobj.Harga
+        # print("verif:",verifobj.NoSuratJalan)
+        models.transactionlog(
+            user = "Purchasing",
+            waktu = datetime.now(),
+            jenis = "ACC",
+            pesan= f"No Surat Jalan {verifobj.NoSuratJalan} sudah ACC"
+        ).save()
+
+        # tes = models.transactionlog.objects.filter(user = "Purchasing")
+        # print("Tes ae : ",tes)
         return redirect("notif_purchasing")
 
 
@@ -251,9 +296,14 @@ def acc_notif_spk(request, id):
     #     accobj.NoSPK.save()
     #     return redirect("notif_purchasing")
     accobj = models.SPK.objects.get(pk=id)
-    
     accobj.KeteranganACC = True
     accobj.save()
+    models.transactionlog(
+            user = "Purchasing",
+            waktu = datetime.now(),
+            jenis = "ACC",
+            pesan= f"No SPK {accobj.NoSPK} sudah ACC"
+        ).save()
     messages.success(request, "Jangan lupa cek data SPK!")
     return redirect("notif_purchasing")
 
@@ -344,6 +394,12 @@ def update_barang_masuk(request, id):
         updateobj.save()
         updateobj.NoSuratJalan.save()
         harga_total = updateobj.Jumlah * updateobj.Harga
+        models.transactionlog(
+            user = "Purchasing",
+            waktu = datetime.now(),
+            jenis = "Update",
+            pesan= f"No Surat Jalan{updateobj.NoSuratJalan} sudah di Update"
+        ).save()
         return redirect("barang_masuk")
         # return JsonResponse({'harga_total': harga_total})
 
@@ -486,6 +542,12 @@ def create_produk(request):
                 Jumlahminimal=jumlah_minimal,
             )
             new_produk.save()
+            models.transactionlog(
+            user = "Purchasing",
+            waktu = datetime.now(),
+            jenis = "Create",
+            pesan= f"Kode Produk {kode_produk} sudah di Create"
+        ).save()
             return redirect("read_produk")
 
 
@@ -507,12 +569,25 @@ def update_produk(request, id):
         produkobj.keteranganPurchasing = keterangan_produk
         produkobj.Jumlahminimal = jumlah_minimal
         produkobj.save()
+        models.transactionlog(
+            user = "Purchasing",
+            waktu = datetime.now(),
+            jenis = "Update",
+            pesan= f"Kode Produk {kode_produk} sudah di Update"
+        ).save()
         return redirect("read_produk")
 
 
 def delete_produk(request, id):
     print(id)
     produkobj = models.Produk.objects.get(KodeProduk=id)
+    # print("delete:",produkobj.KodeProduk)
+    models.transactionlog(
+            user = "Purchasing",
+            waktu = datetime.now(),
+            jenis = "Delete",
+            pesan= f"Kode Produk {produkobj.KodeProduk} sudah di Delete"
+        ).save()
     produkobj.delete()
     messages.success(request, "Data Berhasil dihapus")
     return redirect("read_produk")
