@@ -352,6 +352,7 @@ def barang_masuk(request):
 
             for x in filtersjb:
                 harga_total = x.Jumlah * x.Harga
+                x.NoSuratJalan.Tanggal = x.NoSuratJalan.Tanggal.strftime("%d-%m-%Y")
                 list_harga_total.append(harga_total)
             i = 0
             for item in filtersjb:
@@ -766,7 +767,9 @@ def read_po(request):
 
 
 def read_spk(request):
-    dataspk = models.SPK.objects.all()
+    dataspk = models.SPK.objects.all().order_by('Tanggal')
+    print(dataspk)
+    print(dataspk)
     for spk in dataspk:
         detailspk = models.DetailSPK.objects.filter(NoSPK=spk.id)
         spk.detailspk = detailspk

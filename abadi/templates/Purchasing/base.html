@@ -97,7 +97,11 @@
 
   <script>
     $(document).ready(function () {
-      $('#dataspk').dataTable();
+      $('#dataspk').dataTable(
+        {
+          'order' : []
+        }
+      );
     });
 
     $(document).ready(function () {
@@ -149,7 +153,8 @@
     });
 
     $(document).ready(function() {
-      $('#databarangmasuk').dataTable();
+      $('#databarangmasuk').dataTable(
+     );
     });
 
     $(document).ready(function () {
