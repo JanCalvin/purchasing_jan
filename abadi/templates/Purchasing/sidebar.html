@@ -1,0 +1,97 @@
+{% load static %}
+
+<nav class="sidebar sidebar-offcanvas" id="sidebar">
+  <ul class="nav">
+    <li class="nav-item">
+      <a class="nav-link" href="{% url 'notif_purchasing' %}">
+        <i class="typcn typcn-device-desktop menu-icon"></i>
+        <span class="menu-title">Dashboard</span>
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="{% url 'read_produk' %}" aria-expanded="false" aria-controls="tables">
+        <i class="typcn typcn-film menu-icon"></i>
+        <span class="menu-title">Bahan Baku</span>
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" data-toggle="collapse" href="#kartustok" aria-expanded="false" aria-controls="produksi">
+        <i class="typcn typcn-document-text menu-icon"></i>
+        <span class="menu-title">Register</span>
+        <i class="menu-arrow"></i>
+      </a>
+      <div class="collapse" id="kartustok">
+        <ul class="nav flex-column sub-menu">
+          <li class="nav-item"> <a class="nav-link" href="{% url 'barang_masuk' %}">Register Bahan Baku</a></li>
+        </ul>
+        <ul class="nav flex-column sub-menu">
+          <li class="nav-item"> <a class="nav-link" href="{% url 'rekaphargasubkon' %}">Register Bahan Baku Subkon</a></li>
+        </ul>
+      </div>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-link" href="{% url 'rekap_purchasing' %}" aria-expanded="false" aria-controls="charts">
+        <i class="typcn typcn-chart-pie-outline menu-icon"></i>
+        <span class="menu-title">Rekap Bahan Baku</span>
+      </a>
+    <li class="nav-item">
+      <a class="nav-link" href="{% url 'rekapharga' %}" aria-expanded="false" aria-controls="tables">
+        <i class="typcn typcn-th-small-outline menu-icon"></i>
+        <span class="menu-title">KSBB</span>
+      </a>
+    </li>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="{% url 'penyusun' %}" aria-expanded="false" aria-controls="tables">
+        <i class="typcn typcn-th-small-outline menu-icon"></i>
+        <span class="menu-title">Penyusun</span>
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="{% url 'kebutuhan_barang' %}" aria-expanded="false" aria-controls="tables">
+        <i class="typcn typcn-th-small-outline menu-icon"></i>
+        <span class="menu-title">Kebutuhan Bahan Baku</span>
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="{% url 'read_po' %}" aria-expanded="false" aria-controls="tables">
+        <i class="typcn typcn-th-small-outline menu-icon"></i>
+        <span class="menu-title">PO</span>
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="{% url 'read_spk' %}" aria-expanded="false" aria-controls="tables">
+        <i class="typcn typcn-th-small-outline menu-icon"></i>
+        <span class="menu-title">SPK</span>
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="{% url 'view_sppb2' %}" aria-expanded="false" aria-controls="tables">
+        <i class="typcn typcn-th-small-outline menu-icon"></i>
+        <span class="menu-title">SPPB</span>
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" data-toggle="collapse" href="#saldoawal" aria-expanded="false" aria-controls="produksi">
+        <i class="typcn typcn-shopping-bag menu-icon"></i>
+        <span class="menu-title">Saldo Awal</span>
+        <i class="menu-arrow"></i>
+      </a>
+      <div class="collapse" id="saldoawal">
+        <ul class="nav flex-column sub-menu">
+          <li class="nav-item"> <a class="nav-link" href="{% url 'saldobahanbakupurchasing' %}">Bahan Baku</a></li>
+        </ul>
+        <ul class="nav flex-column sub-menu">
+          <li class="nav-item"> <a class="nav-link" href="/produksi/viewsaldoartikel">Artikel</a></li>
+        </ul>
+        <ul class="nav flex-column sub-menu">
+          <li class="nav-item"> <a class="nav-link" href="/produksi/viewsaldobahansubkon">Bahan Baku Subkon</a></li>
+        </ul>
+        <ul class="nav flex-column sub-menu">
+          <li class="nav-item"> <a class="nav-link" href="/produksi/viewsaldosubkon">Produk Subkon</a></li>
+        </ul>
+      </div>
+    </li>
+  </ul>
+</nav>

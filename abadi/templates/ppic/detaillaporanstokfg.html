@@ -1,0 +1,173 @@
+{% extends "ppic/base.html" %}
+{% load static %}
+{% load humanize %}
+{% load customfilter %}
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}
+{% endblock stylesheets %}
+
+
+
+<!-- Page content  -->
+{% block content %}
+<div class="row">
+    <div class="col-lg-12 grid-margin stretch-card">
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title" > Total Saldo FG Periode {{bulan}} :Rp {{totalsaldofg|custom_thousands_separator}}</h4>
+                <h4 class="card-title">Detail Stok Artikel FG Periode : {{bulan}} </h4>
+
+
+
+                <div class="table-responsive pt-3">
+                    {% if artikelfg %}
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <td>No</td>
+                                <td>Kode Artikel</td>
+                                <td>Jumlah</td>
+                                <td>Harga FG</td>
+                                <td>Biaya</td>
+
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in artikelfg %}
+                            <tr>
+                                <td>{{forloop.counter}}</td>
+                                <td>{{item.KodeArtikel}}</td>
+                                <td>{{item.total}}</td>
+                                <td>{{item.hargafg|custom_thousands_separator}}</td>
+                                <td>{{item.totalsaldo|custom_thousands_separator}}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <td>Total</td>
+                                <td>{{stokfg.total}}</td>
+                        </thead>
+                    </table>
+
+
+                    {% endif %}
+                </div>
+                
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-lg-12 grid-margin stretch-card">
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title">Detail Stok Display FG Periode : {{bulan}} </h4>
+
+
+
+                <div class="table-responsive pt-3">
+                    {% if displayfg %}
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <td>No</td>
+                                <td>Kode Display</td>
+                                <td>Jumlah</td>
+                                <td>Harga FG</td>
+                                <td>Biaya</td>
+
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in displayfg %}
+                            <tr>
+                                <td>{{forloop.counter}}</td>
+                                <td>{{item.KodeDisplay}}</td>
+                                <td>{{item.total}}</td>
+                                <td>{{item.hargafg|custom_thousands_separator}}</td>
+                                <td>{{item.totalsaldo|custom_thousands_separator}}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <td>Total</td>
+                                <td>{{stokfg.total}}</td>
+                        </thead>
+                    </table>
+
+
+                    {% endif %}
+                </div>
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-12 grid-margin stretch-card">
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title">Detail Stok FG Periode : {{bulan}} </h4>
+
+
+
+                <div class="table-responsive pt-3">
+                    <h5>Stok Bahan Baku</h5>
+                    {{sisabahanfg}}
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <td>No</td>
+                                <td>Kode Bahan Baku</td>
+                                <td>Nama Bahan Baku</td>
+                                <td>Unit</td>
+                                <td>Harga Satuan</td>
+                                <td>Saldo</td>
+                                <td>Total Biaya</td>
+                
+                            </tr>
+                        </thead>
+                        <tbody>
+                
+                            {% for item in sisabahanfg %}
+                            <tr>
+                                <td>{{forloop.counter}}</td>
+                                <td>{{item.KodeProduk}}</td>
+                                <td>{{item.KodeProduk.NamaProduk}}</td>
+                                <td>{{item.KodeProduk.unit}}</td>
+                                <td>{{item.hargasatuan|custom_thousands_separator}}</td>
+                                <td>{{item.total|custom_thousands_separator}}</td>
+                                <td>{{item.hargatotal|custom_thousands_separator}}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <td>Total</td>
+                                <td>{{sisabahafg.total}}</td>
+                        </thead>
+                    </table>
+
+
+                </div>
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{% block javascripts %}
+
+{% endblock javascripts %}
+{% endblock content %}
