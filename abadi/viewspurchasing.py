@@ -442,7 +442,7 @@ def exportbarang_excel(request):
     worksheet.title = 'Barang Masuk'
 
     # Definisikan header untuk worksheet
-    headers = ['Tanggal','Suppliers','Kode Bahan Baku','Nama Bahan Baku', 'Kuantitas', 'Harga', 'Harga Total', f'Harga PPN {valueppn}%', 'Harga Total PPN']
+    headers = ['Tanggal','Suppliers','Kode Bahan Baku','Nama Bahan Baku', 'Kuantitas', 'Harga(Rupiah)', 'Harga Total(Rupiah)', f'Harga PPN {valueppn}%(Rupiah)', 'Harga Total PPN(Rupiah)']
     worksheet.append(headers)
 
     # Tambahkan data ke worksheet
@@ -490,6 +490,11 @@ def exportbarang_excel(request):
     for row in worksheet.iter_rows():
         for cell in row:
             cell.border = thin_border
+    # Format angka dengan pemisah ribuan dan desimal
+    for row in worksheet.iter_rows(min_row=2, min_col=5, max_col=9):  # mulai dari baris 2 dan kolom 5 (Kuantitas)
+        for cell in row:
+            if cell.column in [5, 6, 7, 8, 9]:  # kolom Kuantitas dan Harga
+                cell.number_format = '#,##0.00'
     # Atur response untuk mengunduh file Excel
     response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
     response['Content-Disposition'] = 'attachment; filename=barang_masuk.xlsx'
@@ -2541,7 +2546,7 @@ def exportbarangsubkon_excel(request):
     worksheet.title = 'Barang Masuk'
 
     # Definisikan header untuk worksheet
-    headers = ['Tanggal', 'Supplier', 'Kode Bahan Baku Subkon', 'Nama Bahan Baku Subkon', 'Satuan', 'Kuantitas', 'Harga', 'Harga Total', f'Harga Potongan {valueppn}%', 'Harga Total Setelah Potongan', 'Tanggal Invoice', 'No Invoice']
+    headers = ['Tanggal', 'Supplier', 'Kode Bahan Baku Subkon', 'Nama Bahan Baku Subkon', 'Satuan', 'Kuantitas', 'Harga(Rupiah)', 'Harga Total(Rupiah)', f'Harga Potongan {valueppn}% (Rupiah)', 'Harga Total Setelah Potongan(Rupiah)', 'Tanggal Invoice', 'No Invoice']
     worksheet.append(headers)
 
     # Tambahkan data ke worksheet
@@ -2592,7 +2597,11 @@ def exportbarangsubkon_excel(request):
     for row in worksheet.iter_rows():
         for cell in row:
             cell.border = thin_border
-
+     # Format angka dengan pemisah ribuan dan desimal
+    for row in worksheet.iter_rows(min_row=2, min_col=6, max_col=10):  # mulai dari baris 2 dan kolom 5 (Kuantitas)
+        for cell in row:
+            if cell.column in [6,7, 8, 9, 10]:  # kolom Kuantitas dan Harga
+                cell.number_format = '#,##0.00'
     # Atur response untuk mengunduh file Excel
     response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
     response['Content-Disposition'] = 'attachment; filename=bahanbakusubkon_masuk.xlsx'
@@ -3275,3 +3284,87 @@ def bulk_createsjp(request):
 
     return render(request, "Purchasing/bulk_createproduk.html")
 
+
+# Saldo Awal Artikel
+@login_required
+@logindecorators.allowed_users(allowed_roles=['purchasing'])
+def view_saldoartikel(request):
+    dataartikel = models.SaldoAwalArtikel.objects.all().order_by("-Tanggal")
+    for i in dataartikel:
+        i.Tanggal = i.Tanggal.strftime("%Y-%m-%d")
+
+    return render(
+        request, "Purchasing/views_saldoartikel.html", {"dataartikel": dataartikel}
+    )
+
+# Saldo Bahan Subkon
+@login_required
+@logindecorators.allowed_users(allowed_roles=['purchasing'])
+def view_saldobahansubkon(request):
+    datasubkon = models.SaldoAwalBahanBakuSubkon.objects.all().order_by("-Tanggal")
+    for i in datasubkon:
+        i.Tanggal = i.Tanggal.strftime("%Y-%m-%d")
+
+    return render(
+        request, "Purchasing/views_saldobahansubkon.html", {"datasubkon": datasubkon}
+    )
+
+# Saldo Awal Produk Subkon
+@login_required
+@logindecorators.allowed_users(allowed_roles=['purchasing'])
+def view_saldosubkon(request):
+    datasubkon = models.SaldoAwalSubkon.objects.all().order_by("-Tanggal")
+    for i in datasubkon:
+        i.Tanggal = i.Tanggal.strftime("%Y-%m-%d")
+
+    return render(
+        request, "Purchasing/views_saldoproduksubkon.html", {"datasubkon": datasubkon}
+    )
+
+
+@login_required
+@logindecorators.allowed_users(allowed_roles=['purchasing'])
+def update_saldosubkon(request, id):
+    dataobj = models.SaldoAwalSubkon.objects.get(IDSaldoAwalProdukSubkon=id)
+    dataobj.Tanggal = dataobj.Tanggal.strftime("%Y-%m-%d")
+    datasubkon = models.ProdukSubkon.objects.all()
+    if request.method == "GET":
+        return render(
+            request,
+            "Purchasing/update_saldoproduksubkon.html",
+            {"data": dataobj,"datasubkon": datasubkon },
+        )
+
+    else:
+        kodeproduk = request.POST["kodebarangHidden"]
+        jumlah = request.POST["jumlah"]
+        tanggal = request.POST["tanggal"]
+
+        # Ubah format tanggal menjadi YYYY-MM-DD
+        tanggal_formatted = datetime.strptime(tanggal, "%Y-%m-%d")
+        # Periksa apakah entri sudah ada
+        existing_entry = models.SaldoAwalSubkon.objects.filter(
+            Tanggal__year=tanggal_formatted.year,
+            IDProdukSubkon__NamaProduk=kodeproduk,
+        ).exclude(IDSaldoAwalProdukSubkon=id).exists()
+          
+        if existing_entry:
+            # Jika sudah ada, beri tanggapan atau lakukan tindakan yang sesuai
+            messages.warning(request,('Sudah ada Entry pada tahun',tanggal_formatted.year))
+            return redirect("view_produksubkon")
+        
+        produkobj = models.ProdukSubkon.objects.get(IDProdukSubkon=kodeproduk)
+
+        dataobj.Tanggal = tanggal
+        dataobj.Jumlah = jumlah
+        dataobj.IDProdukSubkon = produkobj
+        dataobj.save()
+
+        models.transactionlog(
+            user="Produksi",
+            waktu=datetime.now(),
+            jenis="Update",
+            pesan=f"Saldo Produk Subkon. Nama Produk : {produkobj.NamaProduk} Kode Artikel : {produkobj.KodeArtikel} Jumlah : {jumlah}",
+        ).save()
+
+        return redirect("view_produksubkon")

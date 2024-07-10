@@ -123,4 +123,16 @@ urlpatterns = [
         viewspurchasing.delete_saldosubkon,
         name="delete_saldosubkon",
     ),
+    path("viewsaldoartikel", viewspurchasing.view_saldoartikel, name="view_saldoartikelpurchasing"),
+    path(
+        "viewsaldobahansubkon",
+        viewspurchasing.view_saldobahansubkon,
+        name="view_saldobahansubkon",
+    ),
+    path("viewproduksubkon", viewspurchasing.view_saldosubkon, name="view_produksubkon"),
+    path(
+        "update_saldosubkon/<str:id>",
+        viewspurchasing.update_saldosubkon,
+        name="update_saldosubkon",
+    ),
 ]
